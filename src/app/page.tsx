@@ -21,6 +21,9 @@ export default function DashboardPage() {
     submitVendorQuote,
     declineVendorQuote,
     selectWinningVendor,
+    markCaseAsShipped,
+    recordFinalAssessment,
+    resetFinalAssessment,
     completeCase,
   } = useAssessmentData();
 
@@ -77,6 +80,9 @@ export default function DashboardPage() {
                   onSendBatchRequest={sendLineBatchRequest}
                   onSelectWinningVendor={selectWinningVendor}
                   onOpenVendorSimulator={handleOpenVendorSimulator}
+                  onMarkShipped={markCaseAsShipped}
+                  onRecordFinalAssessment={recordFinalAssessment}
+                  onResetFinalAssessment={resetFinalAssessment}
                   onCompleteCase={completeCase}
                 />
               </div>

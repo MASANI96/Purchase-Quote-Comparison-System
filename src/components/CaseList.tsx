@@ -232,30 +232,63 @@ export const CaseList: React.FC<CaseListProps> = ({
                     )}
                   </div>
 
-                  {/* Quotes summary status */}
-                  <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1.5">
-                      {quotedQuotes.length > 0 ? (
-                        <span className="text-emerald-700 font-bold flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          {quotedQuotes.length}社回答済み
-                        </span>
-                      ) : (
-                        <span className="text-amber-700 font-semibold flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5" />
-                          {item.quotes.filter((q) => q.status === 'pending').length > 0
-                            ? '査定依頼中(回答待ち)'
-                            : '査定未送信'}
-                        </span>
+                  {/* Quotes summary status & Final assessment variance badge */}
+                  <div className="mt-2.5 pt-2 border-t border-slate-100 flex flex-col gap-1.5 text-xs">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        {quotedQuotes.length > 0 ? (
+                          <span className="text-emerald-700 font-bold flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            {quotedQuotes.length}社回答済み
+                          </span>
+                        ) : (
+                          <span className="text-amber-700 font-semibold flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5" />
+                            {item.quotes.filter((q) => q.status === 'pending').length > 0
+                              ? '査定依頼中(回答待ち)'
+                              : '査定未送信'}
+                          </span>
+                        )}
+                      </div>
+
+                      {highestQuote?.price && (
+                        <div className="text-right">
+                          <span className="text-[11px] text-slate-500">事前最高: </span>
+                          <span className="text-sm font-extrabold text-emerald-700 font-mono">
+                            ¥{highestQuote.price.toLocaleString()}
+                          </span>
+                        </div>
                       )}
                     </div>
 
-                    {highestQuote?.price && (
-                      <div className="text-right">
-                        <span className="text-[11px] text-slate-500">最高額: </span>
-                        <span className="text-sm font-extrabold text-emerald-700 font-mono">
-                          ¥{highestQuote.price.toLocaleString()}
+                    {/* Final Assessment Variance Tag */}
+                    {item.finalAssessment && (
+                      <div className="flex items-center justify-between bg-slate-50 p-1.5 rounded-lg border border-slate-200">
+                        <span className="text-[11px] font-bold text-slate-600">
+                          現物確定: <strong className="text-slate-900 font-mono">¥{item.finalAssessment.finalPrice.toLocaleString()}</strong>
                         </span>
+                        <span
+                          className={`text-[11px] font-extrabold px-1.5 py-0.5 rounded ${
+                            item.finalAssessment.variance < 0
+                              ? 'bg-rose-100 text-rose-700'
+                              : item.finalAssessment.variance > 0
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : 'bg-blue-100 text-blue-700'
+                          }`}
+                        >
+                          {item.finalAssessment.variance < 0
+                            ? `誤差: -¥${Math.abs(item.finalAssessment.variance).toLocaleString()}`
+                            : item.finalAssessment.variance > 0
+                            ? `増額: +¥${item.finalAssessment.variance.toLocaleString()}`
+                            : '満額確定 (±0円)'}
+                        </span>
+                      </div>
+                    )}
+
+                    {item.status === 'shipped' && (
+                      <div className="bg-indigo-50 text-indigo-700 text-[11px] font-bold px-2 py-0.5 rounded border border-indigo-200 flex items-center justify-between">
+                        <span>📦 現物発送済み（業者検品中）</span>
+                        <span className="text-[10px] text-indigo-500">確定金額入力待ち</span>
                       </div>
                     )}
                   </div>

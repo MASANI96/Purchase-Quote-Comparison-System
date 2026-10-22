@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { AssessmentCase, Vendor, Quote } from '../types';
+import { AssessmentCase, Vendor, Quote, FinalAssessment } from '../types';
 import { INITIAL_CASES, INITIAL_VENDORS } from '../data/mockData';
 
-const STORAGE_KEY_CASES = 'kaitori_assessment_cases_v2';
-const STORAGE_KEY_VENDORS = 'kaitori_assessment_vendors_v2';
+const STORAGE_KEY_CASES = 'kaitori_assessment_cases_v3';
+const STORAGE_KEY_VENDORS = 'kaitori_assessment_vendors_v3';
 const EVENT_CUSTOM_UPDATE = 'kaitori_data_updated';
 
 function getStoredData<T>(key: string, defaultValue: T): T {
@@ -166,9 +166,7 @@ export function useAssessmentData() {
       if (!targetCase) return;
 
       const updatedQuotes: Quote[] = targetCase.quotes.map((q) => {
-        // If specific vendors specified, only update those. Otherwise update all not_sent or pending
-        const shouldUpdate =
-          !targetVendorIds || targetVendorIds.includes(q.vendorId);
+        const shouldUpdate = !targetVendorIds || targetVendorIds.includes(q.vendorId);
         if (shouldUpdate && (q.status === 'not_sent' || q.status === 'pending')) {
           return {
             ...q,
@@ -226,7 +224,7 @@ export function useAssessmentData() {
         return q;
       });
 
-      // Status updates to 'assessed' if not already ordered or completed
+      // Status updates to 'assessed' if not already ordered, shipped, or finalized
       let nextStatus = targetCase.status;
       if (nextStatus === 'requesting' || nextStatus === 'draft') {
         nextStatus = 'assessed';
@@ -280,7 +278,7 @@ export function useAssessmentData() {
     [cases]
   );
 
-  // Select winning vendor
+  // Select winning vendor (発注・成約)
   const selectWinningVendor = useCallback(
     (caseId: string, vendorId: string) => {
       const targetCase = cases.find((c) => c.id === caseId);
@@ -299,7 +297,104 @@ export function useAssessmentData() {
     [cases]
   );
 
-  // Complete case
+  // Mark as Shipped (現物発送済みに更新)
+  const markCaseAsShipped = useCallback(
+    (caseId: string, trackingNumber?: string) => {
+      const now = new Date();
+      const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
+        now.getDate()
+      ).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+      const targetCase = cases.find((c) => c.id === caseId);
+      if (!targetCase) return;
+
+      const updatedCase: AssessmentCase = {
+        ...targetCase,
+        status: 'shipped',
+        shippedAt: formattedDate,
+        trackingNumber: trackingNumber || 'ヤマト運輸 (集荷手配済)',
+      };
+
+      const updated = cases.map((c) => (c.id === caseId ? updatedCase : c));
+      setCases(updated);
+      setStoredData(STORAGE_KEY_CASES, updated);
+    },
+    [cases]
+  );
+
+  // Record Final Assessment (現物到着後の確定金額＆誤差チェック登録)
+  const recordFinalAssessment = useCallback(
+    (
+      caseId: string,
+      data: {
+        finalPrice: number;
+        reasonCategory: FinalAssessment['reasonCategory'];
+        reasonText: string;
+        confirmedBy?: string;
+      }
+    ) => {
+      const now = new Date();
+      const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
+        now.getDate()
+      ).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+      const targetCase = cases.find((c) => c.id === caseId);
+      if (!targetCase) return;
+
+      // Find initial quoted price for the selected winning vendor
+      const winningQuote = targetCase.quotes.find(
+        (q) => q.vendorId === targetCase.selectedVendorId && q.status === 'quoted'
+      );
+      const initialPrice = winningQuote?.price || targetCase.targetPrice || data.finalPrice;
+
+      const variance = data.finalPrice - initialPrice;
+      const variancePercent =
+        initialPrice > 0 ? parseFloat(((variance / initialPrice) * 100).toFixed(1)) : 0;
+
+      const finalAssessment: FinalAssessment = {
+        initialPrice,
+        finalPrice: data.finalPrice,
+        variance,
+        variancePercent,
+        reasonCategory: data.reasonCategory,
+        reasonText: data.reasonText,
+        finalizedAt: formattedDate,
+        confirmedBy: data.confirmedBy || '店舗代表 / 査定担当',
+      };
+
+      const updatedCase: AssessmentCase = {
+        ...targetCase,
+        status: 'finalized',
+        finalAssessment,
+      };
+
+      const updated = cases.map((c) => (c.id === caseId ? updatedCase : c));
+      setCases(updated);
+      setStoredData(STORAGE_KEY_CASES, updated);
+    },
+    [cases]
+  );
+
+  // Reset or re-edit final assessment
+  const resetFinalAssessment = useCallback(
+    (caseId: string) => {
+      const targetCase = cases.find((c) => c.id === caseId);
+      if (!targetCase) return;
+
+      const updatedCase: AssessmentCase = {
+        ...targetCase,
+        status: targetCase.shippedAt ? 'shipped' : 'ordered',
+        finalAssessment: undefined,
+      };
+
+      const updated = cases.map((c) => (c.id === caseId ? updatedCase : c));
+      setCases(updated);
+      setStoredData(STORAGE_KEY_CASES, updated);
+    },
+    [cases]
+  );
+
+  // Complete case (取引完了)
   const completeCase = useCallback(
     (caseId: string) => {
       const targetCase = cases.find((c) => c.id === caseId);
@@ -333,6 +428,9 @@ export function useAssessmentData() {
     submitVendorQuote,
     declineVendorQuote,
     selectWinningVendor,
+    markCaseAsShipped,
+    recordFinalAssessment,
+    resetFinalAssessment,
     completeCase,
     reload: reloadData,
   };

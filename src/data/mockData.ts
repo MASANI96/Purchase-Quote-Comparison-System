@@ -119,8 +119,10 @@ export const INITIAL_CASES: AssessmentCase[] = [
     targetPrice: 750000,
     imageUrl: 'https://images.unsplash.com/photo-1547996160-71dfa6309d9a?auto=format&fit=crop&w=800&q=80',
     notes: '2024年購入の試着程度極上品。裏スケルトンモデル。',
-    status: 'ordered',
+    status: 'shipped',
     selectedVendorId: 'vendor-1',
+    shippedAt: '2026-10-21 11:30',
+    trackingNumber: 'ヤマト運輸 4821-3902-1840',
     createdAt: '2026-10-20 11:00',
     quotes: [
       {
@@ -305,8 +307,20 @@ export const INITIAL_CASES: AssessmentCase[] = [
     targetPrice: 1100000,
     imageUrl: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=800&q=80',
     notes: '角スレほぼなし、型崩れなし。チェーン金メッキ良好。',
-    status: 'ordered',
+    status: 'finalized',
     selectedVendorId: 'vendor-2',
+    shippedAt: '2026-10-19 14:00',
+    trackingNumber: 'ヤマト運輸 3319-8012-9901',
+    finalAssessment: {
+      initialPrice: 1250000,
+      finalPrice: 1180000,
+      variance: -70000,
+      variancePercent: -5.6,
+      reasonCategory: 'flaw_damage',
+      reasonText: 'バッグ内側底面に写真では見えにくかった化粧品ラメの付着および、フラップ裏に微細な押し跡が確認されたため7万円の減額査定。顧客同意済み。',
+      finalizedAt: '2026-10-21 10:15',
+      confirmedBy: '佐々木 健一（統括バイヤー）',
+    },
     createdAt: '2026-10-19 13:00',
     quotes: [
       {
@@ -541,8 +555,20 @@ export const INITIAL_CASES: AssessmentCase[] = [
     targetPrice: 350000,
     imageUrl: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=800&q=80',
     notes: 'マザーオブパールに欠けや目立つ曇りなし。チェーン伸びなし。',
-    status: 'ordered',
+    status: 'finalized',
     selectedVendorId: 'vendor-2',
+    shippedAt: '2026-10-19 10:00',
+    trackingNumber: 'ゆうパック 6620-1193-4820',
+    finalAssessment: {
+      initialPrice: 410000,
+      finalPrice: 430000,
+      variance: 20000,
+      variancePercent: 4.9,
+      reasonCategory: 'condition_better',
+      reasonText: '現物の白蝶貝の照り・虹彩のコンディションが極めて美しく、付属品の販売証明書も完全な状態だったため+2万円の特別増額確定！',
+      finalizedAt: '2026-10-20 16:30',
+      confirmedBy: '佐々木 健一（統括バイヤー）',
+    },
     createdAt: '2026-10-18 15:00',
     quotes: [
       {
