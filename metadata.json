@@ -1,0 +1,6 @@
+{
+  "name": "買取相見積もり管理システム",
+  "description": "買取仲介業者向けLINE×査定相見積もり管理アプリ。複数業者への一括査定依頼、リアルタイム金額比較、発注先決定、業者側LINE回答シミュレーションをワンストップで実現。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
